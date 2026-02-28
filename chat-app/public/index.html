@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms - Join or Create</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Chat Rooms</h1>
+                <p>Real-time Communication</p>
+            </div>
+
+            <div class="content">
+                <!-- Tab Navigation -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="join-tab">Join Room</button>
+                    <button class="tab-btn" data-tab="create-tab">Create Room</button>
+                </div>
+
+                <!-- Join Room Tab -->
+                <div id="join-tab" class="tab-content active">
+                    <form id="joinForm">
+                        <div class="form-group">
+                            <label for="joinUsername">Your Name</label>
+                            <input type="text" id="joinUsername" placeholder="Enter your username" maxlength="30" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="joinRoomId">Room ID</label>
+                            <input type="text" id="joinRoomId" placeholder="Enter room ID to join" maxlength="50" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Join Type</label>
+                            <div class="room-type-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="joinRoomType" value="public" checked>
+                                    <span>Public Room</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="joinRoomType" value="private">
+                                    <span>Private Room</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="joinPasswordGroup" style="display: none;">
+                            <label for="joinPassword">Room Password</label>
+                            <input type="password" id="joinPassword" placeholder="Enter private room password" maxlength="50">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Join Room</button>
+                    </form>
+                </div>
+
+                <!-- Create Room Tab -->
+                <div id="create-tab" class="tab-content">
+                    <form id="createForm">
+                        <div class="form-group">
+                            <label for="createUsername">Your Name</label>
+                            <input type="text" id="createUsername" placeholder="Enter your username" maxlength="30" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="createRoomId">Room ID</label>
+                            <input type="text" id="createRoomId" placeholder="Enter unique room ID" maxlength="50" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maxSeats">Maximum Seats (1-100)</label>
+                            <input type="number" id="maxSeats" min="1" max="100" value="10" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Room Type</label>
+                            <div class="room-type-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="roomType" value="public" checked>
+                                    <span>Public (visible to everyone)</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="roomType" value="private">
+                                    <span>Private (password protected)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="createPasswordGroup" style="display: none;">
+                            <label for="createPassword">Room Password</label>
+                            <input type="password" id="createPassword" placeholder="Enter password for private room" minlength="4" maxlength="50">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Create Room</button>
+                    </form>
+                </div>
+
+                <!-- Error Message Display -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <div class="public-rooms-section">
+                    <h3>Public Rooms</h3>
+                    <div id="publicRoomsList" class="public-rooms-list">
+                        <p class="empty-state">No public rooms yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with Node.js, Express & Socket.IO</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>

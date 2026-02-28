@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-left">
+                <h1 id="roomTitle">Chat Room</h1>
+                <p id="roomInfo">Loading...</p>
+            </div>
+            <button id="leaveBtn" class="btn btn-danger">Leave Room</button>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-main">
+            <!-- Users Sidebar -->
+            <div class="users-sidebar">
+                <h3>Users (<span id="userCount">0</span>)</h3>
+                <div id="usersList" class="users-list">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="messages-area">
+                <div id="messagesList" class="messages-list">
+                    <!-- Messages will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="chat-footer">
+            <form id="messageForm">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Type a message..." 
+                        maxlength="500"
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="btn btn-send">Send</button>
+                </div>
+            </form>
+            <div id="charCount" class="char-count">0/500</div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
+    <script src="chat.js"></script>
+</body>
+</html>
