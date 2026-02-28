@@ -17,6 +17,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // In-memory data structure for rooms
 const rooms = {};
+const randomWaitingQueue = [];
+const randomPairs = new Map(); // socketId -> partnerSocketId
 
 // Helper function to get room info
 function getRoomInfo(roomId) {
@@ -90,6 +92,78 @@ function getUsersDetailedInRoom(roomId) {
 function isSocketInRoom(roomId, socketId) {
   const roomSockets = io.sockets.adapter.rooms.get(roomId);
   return roomSockets ? roomSockets.has(socketId) : false;
+}
+
+function dequeueRandomSocket(socketId) {
+  const index = randomWaitingQueue.indexOf(socketId);
+  if (index !== -1) {
+    randomWaitingQueue.splice(index, 1);
+  }
+}
+
+function getRandomPartner(socketId) {
+  return randomPairs.get(socketId) || null;
+}
+
+function clearRandomPair(socketId) {
+  const partnerSocketId = getRandomPartner(socketId);
+  if (!partnerSocketId) return null;
+
+  randomPairs.delete(socketId);
+  randomPairs.delete(partnerSocketId);
+  return partnerSocketId;
+}
+
+function isRandomPair(socketId, targetSocketId) {
+  return randomPairs.get(socketId) === targetSocketId;
+}
+
+function tryMatchRandomUser(socket) {
+  dequeueRandomSocket(socket.id);
+
+  while (randomWaitingQueue.length > 0) {
+    const candidateId = randomWaitingQueue.shift();
+    if (!candidateId || candidateId === socket.id) {
+      continue;
+    }
+
+    const candidateSocket = io.sockets.sockets.get(candidateId);
+    if (!candidateSocket || getRandomPartner(candidateId)) {
+      continue;
+    }
+
+    randomPairs.set(socket.id, candidateId);
+    randomPairs.set(candidateId, socket.id);
+
+    socket.emit('randomMatched', {
+      partnerSocketId: candidateId,
+      partnerName: candidateSocket.data.randomName || 'Stranger',
+      initiator: true
+    });
+
+    candidateSocket.emit('randomMatched', {
+      partnerSocketId: socket.id,
+      partnerName: socket.data.randomName || 'Stranger',
+      initiator: false
+    });
+    return true;
+  }
+
+  randomWaitingQueue.push(socket.id);
+  socket.emit('randomWaiting');
+  return false;
+}
+
+function endRandomSession(socket, { notifyPartner = true } = {}) {
+  dequeueRandomSocket(socket.id);
+  const partnerSocketId = clearRandomPair(socket.id);
+  if (!partnerSocketId) return;
+
+  if (notifyPartner) {
+    io.to(partnerSocketId).emit('randomDisconnected', {
+      message: 'Stranger disconnected'
+    });
+  }
 }
 
 // Socket.IO Events
@@ -318,6 +392,102 @@ io.on('connection', (socket) => {
   });
 
   /**
+   * Event: Random Join (Vemege)
+   * Adds user to random matchmaking queue.
+   */
+  socket.on('randomJoin', (data = {}, callback = () => {}) => {
+    const { username = '' } = data;
+    socket.data.randomName = String(username || '').trim().slice(0, 30) || 'Stranger';
+
+    if (getRandomPartner(socket.id)) {
+      return callback({ success: true, status: 'paired' });
+    }
+
+    tryMatchRandomUser(socket);
+    callback({ success: true, status: 'searching' });
+  });
+
+  /**
+   * Event: Random Next (Vemege)
+   * Ends current pair (if any) and finds the next stranger.
+   */
+  socket.on('randomNext', (callback = () => {}) => {
+    endRandomSession(socket, { notifyPartner: true });
+    tryMatchRandomUser(socket);
+    callback({ success: true });
+  });
+
+  /**
+   * Event: Random Leave (Vemege)
+   * Leaves queue and active random pair.
+   */
+  socket.on('randomLeave', (callback = () => {}) => {
+    endRandomSession(socket, { notifyPartner: true });
+    dequeueRandomSocket(socket.id);
+    callback({ success: true });
+  });
+
+  /**
+   * WebRTC Signaling for Random Chat: Offer
+   */
+  socket.on('randomOffer', (data, callback = () => {}) => {
+    const { targetSocketId, offer } = data || {};
+    if (!targetSocketId || !offer) {
+      return callback({ success: false, message: 'Invalid offer payload' });
+    }
+    if (!isRandomPair(socket.id, targetSocketId)) {
+      return callback({ success: false, message: 'Target is not your active random partner' });
+    }
+
+    io.to(targetSocketId).emit('randomOffer', {
+      fromSocketId: socket.id,
+      fromUsername: socket.data.randomName || 'Stranger',
+      offer
+    });
+    callback({ success: true });
+  });
+
+  /**
+   * WebRTC Signaling for Random Chat: Answer
+   */
+  socket.on('randomAnswer', (data, callback = () => {}) => {
+    const { targetSocketId, answer } = data || {};
+    if (!targetSocketId || !answer) {
+      return callback({ success: false, message: 'Invalid answer payload' });
+    }
+    if (!isRandomPair(socket.id, targetSocketId)) {
+      return callback({ success: false, message: 'Target is not your active random partner' });
+    }
+
+    io.to(targetSocketId).emit('randomAnswer', {
+      fromSocketId: socket.id,
+      fromUsername: socket.data.randomName || 'Stranger',
+      answer
+    });
+    callback({ success: true });
+  });
+
+  /**
+   * WebRTC Signaling for Random Chat: ICE Candidate
+   */
+  socket.on('randomIceCandidate', (data, callback = () => {}) => {
+    const { targetSocketId, candidate } = data || {};
+    if (!targetSocketId || !candidate) {
+      return callback({ success: false, message: 'Invalid ICE payload' });
+    }
+    if (!isRandomPair(socket.id, targetSocketId)) {
+      return callback({ success: false, message: 'Target is not your active random partner' });
+    }
+
+    io.to(targetSocketId).emit('randomIceCandidate', {
+      fromSocketId: socket.id,
+      fromUsername: socket.data.randomName || 'Stranger',
+      candidate
+    });
+    callback({ success: true });
+  });
+
+  /**
    * Event: Disconnect
    * Handles unexpected disconnects
    */
@@ -346,6 +516,9 @@ io.on('connection', (socket) => {
 
       emitPublicRoomsUpdate();
     }
+
+    endRandomSession(socket, { notifyPartner: true });
+    dequeueRandomSocket(socket.id);
   });
 
   /**

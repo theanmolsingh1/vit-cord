@@ -23,6 +23,21 @@ const roomTypeInputs = document.querySelectorAll('input[name="roomType"]');
 const publicRoomsList = document.getElementById('publicRoomsList');
 const errorMessage = document.getElementById('errorMessage');
 const tabBtns = document.querySelectorAll('.tab-btn');
+const landingChoices = document.getElementById('landingChoices');
+const roomFlow = document.getElementById('roomFlow');
+const showJoinRoomFlowBtn = document.getElementById('showJoinRoomFlowBtn');
+const backToChoicesBtn = document.getElementById('backToChoicesBtn');
+
+function showRoomFlow() {
+    landingChoices.style.display = 'none';
+    roomFlow.style.display = 'block';
+}
+
+function showLandingChoices() {
+    roomFlow.style.display = 'none';
+    landingChoices.style.display = 'block';
+    hideError();
+}
 
 // Tab Switching Functionality
 tabBtns.forEach(btn => {
@@ -154,6 +169,7 @@ function formatCreatedAt(isoDate) {
 }
 
 function switchToJoinWithRoom(roomId) {
+    showRoomFlow();
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab-btn[data-tab="join-tab"]').classList.add('active');
@@ -298,6 +314,15 @@ joinTypeInputs.forEach((input) => {
     input.addEventListener('change', setJoinPasswordVisibility);
 });
 
+showJoinRoomFlowBtn.addEventListener('click', () => {
+    showRoomFlow();
+    joinUsername.focus();
+});
+
+backToChoicesBtn.addEventListener('click', () => {
+    showLandingChoices();
+});
+
 socket.on('publicRooms', (rooms) => {
     renderPublicRooms(rooms);
 });
@@ -308,3 +333,4 @@ socket.on('connect_error', () => {
 
 setCreatePasswordVisibility();
 setJoinPasswordVisibility();
+showLandingChoices();

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vemege - Random Video Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="random-container">
+        <div class="random-header">
+            <div>
+                <h1>Vemege</h1>
+                <p>Random one-on-one video chat</p>
+            </div>
+            <a href="index.html" class="btn btn-send">Back To Rooms</a>
+        </div>
+
+        <div class="random-main">
+            <div class="random-videos">
+                <div class="random-video-card">
+                    <p class="video-label">You</p>
+                    <video id="randomLocalVideo" autoplay playsinline muted></video>
+                </div>
+                <div class="random-video-card">
+                    <p id="randomPartnerLabel" class="video-label">Stranger</p>
+                    <video id="randomRemoteVideo" autoplay playsinline></video>
+                </div>
+            </div>
+
+            <div class="random-panel">
+                <div class="form-group">
+                    <label for="randomUsername">Your Name</label>
+                    <input type="text" id="randomUsername" placeholder="Enter display name" maxlength="30">
+                </div>
+
+                <div id="randomStatus" class="status-message">Click Start to begin random matching.</div>
+
+                <div class="random-controls">
+                    <button id="randomStartBtn" class="btn btn-primary" type="button">Start</button>
+                    <button id="randomNextBtn" class="btn btn-send" type="button" disabled>Next Stranger</button>
+                    <button id="randomMuteBtn" class="btn btn-send" type="button" disabled>Mute Mic</button>
+                    <button id="randomCameraBtn" class="btn btn-send" type="button" disabled>Turn Camera Off</button>
+                    <button id="randomStopBtn" class="btn btn-danger" type="button" disabled>Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.js"></script>
+    <script src="random.js"></script>
+</body>
+</html>

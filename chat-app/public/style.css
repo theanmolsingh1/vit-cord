@@ -70,6 +70,28 @@ body {
     padding: 30px;
 }
 
+.landing-choices h3 {
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+
+.landing-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-back {
+    margin-bottom: 14px;
+    width: auto;
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.btn-back:hover {
+    background: #d1d5db;
+}
+
 /* Tab Navigation */
 .tabs {
     display: flex;
@@ -290,6 +312,37 @@ body {
 .empty-state {
     font-size: 13px;
     color: var(--text-secondary);
+}
+
+.vemege-section {
+    margin-top: 18px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 18px;
+}
+
+.vemege-section h3 {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.vemege-section p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.btn-vemege {
+    display: inline-block;
+    width: 100%;
+    text-decoration: none;
+    text-align: center;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: #fff;
+}
+
+.btn-vemege:hover {
+    color: #fff;
+    background: linear-gradient(135deg, #0284c7, #1d4ed8);
 }
 
 .footer {
@@ -555,6 +608,88 @@ body {
     border: 1px solid #bfdbfe;
 }
 
+/* ==================== Random Chat Page ==================== */
+.random-container {
+    min-height: 100vh;
+    padding: 20px;
+    background: radial-gradient(circle at top left, #0f172a, #111827 40%, #030712);
+    color: #e5e7eb;
+}
+
+.random-header {
+    max-width: 1100px;
+    margin: 0 auto 16px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.random-header h1 {
+    font-size: 28px;
+}
+
+.random-header p {
+    font-size: 14px;
+    color: #93c5fd;
+}
+
+.random-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+}
+
+.random-videos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.random-video-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.random-video-card video {
+    width: 100%;
+    height: 320px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #020617;
+}
+
+.random-panel {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.random-panel .form-group label {
+    color: #e2e8f0;
+}
+
+.random-panel .form-group input {
+    background: #0b1220;
+    color: #e5e7eb;
+    border-color: #334155;
+}
+
+.random-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.random-controls .btn {
+    width: 100%;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .card {
@@ -596,6 +731,18 @@ body {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
+    }
+
+    .random-main {
+        grid-template-columns: 1fr;
+    }
+
+    .random-videos {
+        grid-template-columns: 1fr;
+    }
+
+    .random-video-card video {
+        height: 220px;
     }
 
     .header-left {
@@ -659,5 +806,19 @@ body {
     .local-video-wrap video,
     .remote-video-card video {
         height: 100px;
+    }
+
+    .random-container {
+        padding: 12px;
+    }
+
+    .random-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .random-video-card video {
+        height: 180px;
     }
 }
