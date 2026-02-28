@@ -18,6 +18,7 @@ let isCameraOff = false;
 
 const peerConnections = new Map();
 const userBySocketId = new Map();
+const pendingIceBySocketId = new Map();
 
 const rtcConfig = {
     iceServers: [
@@ -210,7 +211,8 @@ function setMediaButtonState(enabled) {
     stopAvBtn.disabled = !enabled;
 }
 
-async function enableVoiceVideo() {
+async function enableVoiceVideo(options = {}) {
+    const { skipInitiate = false } = options;
     if (mediaEnabled) return true;
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -225,7 +227,9 @@ async function enableVoiceVideo() {
         cameraBtn.textContent = 'Turn Camera Off';
         setMediaButtonState(true);
 
-        connectToExistingPeers();
+        if (!skipInitiate) {
+            connectToExistingPeers();
+        }
         showStatus('Voice/Video enabled', 2000);
         return true;
     } catch (error) {
@@ -245,6 +249,7 @@ function stopVoiceVideo() {
         removeRemoteVideo(remoteSocketId);
     });
     peerConnections.clear();
+    pendingIceBySocketId.clear();
 
     if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
@@ -358,6 +363,8 @@ function createPeerConnection(remoteSocketId, remoteUsername) {
 
 async function createAndSendOffer(remoteSocketId, remoteUsername) {
     if (!mediaEnabled || !remoteSocketId || remoteSocketId === socket.id) return;
+    // Deterministic initiator to avoid offer collisions (glare)
+    if (socket.id.localeCompare(remoteSocketId) > 0) return;
     try {
         const pc = createPeerConnection(remoteSocketId, remoteUsername);
         if (pc.signalingState !== 'stable') return;
@@ -371,6 +378,24 @@ async function createAndSendOffer(remoteSocketId, remoteUsername) {
     } catch (error) {
         console.error('Offer error:', error);
     }
+}
+
+async function flushPendingIce(remoteSocketId) {
+    const queue = pendingIceBySocketId.get(remoteSocketId);
+    if (!queue || queue.length === 0) return;
+
+    const pc = peerConnections.get(remoteSocketId);
+    if (!pc || !pc.remoteDescription) return;
+
+    while (queue.length > 0) {
+        const candidate = queue.shift();
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (error) {
+            console.error('Queued ICE handling error:', error);
+        }
+    }
+    pendingIceBySocketId.delete(remoteSocketId);
 }
 
 function connectToExistingPeers() {
@@ -492,7 +517,7 @@ socket.on('webrtcOffer', async (data) => {
     if (!fromSocketId || !offer) return;
 
     if (!mediaEnabled) {
-        const enabled = await enableVoiceVideo();
+        const enabled = await enableVoiceVideo({ skipInitiate: true });
         if (!enabled) {
             showStatus(`Incoming call from ${fromUsername || 'user'} requires mic/camera access`, 3000);
             return;
@@ -502,9 +527,17 @@ socket.on('webrtcOffer', async (data) => {
     try {
         userBySocketId.set(fromSocketId, fromUsername || 'User');
         const pc = createPeerConnection(fromSocketId, fromUsername || 'User');
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        if (pc.signalingState !== 'stable') {
+            await Promise.all([
+                pc.setLocalDescription({ type: 'rollback' }),
+                pc.setRemoteDescription(new RTCSessionDescription(offer))
+            ]);
+        } else {
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        }
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
+        await flushPendingIce(fromSocketId);
         socket.emit('webrtcAnswer', {
             roomId: currentRoomId,
             targetSocketId: fromSocketId,
@@ -524,6 +557,7 @@ socket.on('webrtcAnswer', async (data) => {
 
     try {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        await flushPendingIce(fromSocketId);
     } catch (error) {
         console.error('Answer handling error:', error);
     }
@@ -534,7 +568,12 @@ socket.on('webrtcIceCandidate', async (data) => {
     if (!fromSocketId || !candidate) return;
 
     const pc = peerConnections.get(fromSocketId);
-    if (!pc) return;
+    if (!pc || !pc.remoteDescription) {
+        const queue = pendingIceBySocketId.get(fromSocketId) || [];
+        queue.push(candidate);
+        pendingIceBySocketId.set(fromSocketId, queue);
+        return;
+    }
 
     try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
