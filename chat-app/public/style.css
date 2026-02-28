@@ -356,6 +356,18 @@ body {
     gap: 8px;
 }
 
+.av-controls {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.av-controls .btn {
+    width: 100%;
+    padding: 10px 12px;
+}
+
 .user-item {
     padding: 10px 12px;
     background-color: var(--background-color);
@@ -372,6 +384,41 @@ body {
     flex-direction: column;
     padding: 20px 30px;
     overflow: hidden;
+}
+
+.video-section {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.local-video-wrap,
+.remote-video-card {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.video-label {
+    color: #e2e8f0;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.local-video-wrap video,
+.remote-video-card video {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #111827;
+}
+
+.remote-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
 }
 
 .messages-list {
@@ -522,7 +569,7 @@ body {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
-        max-height: 150px;
+        max-height: 240px;
     }
 
     .users-list {
@@ -539,6 +586,10 @@ body {
 
     .message-content {
         max-width: 90%;
+    }
+
+    .video-section {
+        grid-template-columns: 1fr;
     }
 
     .chat-header {
@@ -603,5 +654,10 @@ body {
 
     .message-content {
         max-width: 100%;
+    }
+
+    .local-video-wrap video,
+    .remote-video-card video {
+        height: 100px;
     }
 }

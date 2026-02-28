@@ -68,6 +68,30 @@ function getUsersInRoom(roomId) {
   return users;
 }
 
+// Helper function to get all users with socket IDs in a room
+function getUsersDetailedInRoom(roomId) {
+  if (!rooms[roomId]) return [];
+  const sockets = io.sockets.adapter.rooms.get(roomId);
+  if (!sockets) return [];
+
+  const users = [];
+  sockets.forEach(socketId => {
+    const roomSocket = io.sockets.sockets.get(socketId);
+    if (roomSocket && roomSocket.data && roomSocket.data.username) {
+      users.push({
+        socketId,
+        username: roomSocket.data.username
+      });
+    }
+  });
+  return users;
+}
+
+function isSocketInRoom(roomId, socketId) {
+  const roomSockets = io.sockets.adapter.rooms.get(roomId);
+  return roomSockets ? roomSockets.has(socketId) : false;
+}
+
 // Socket.IO Events
 io.on('connection', (socket) => {
   console.log(`New connection: ${socket.id}`);
@@ -125,7 +149,9 @@ io.on('connection', (socket) => {
     // Notify all users in the room about the new user
     io.to(roomId).emit('userJoined', {
       username: username,
+      socketId: socket.id,
       users: getUsersInRoom(roomId),
+      usersDetailed: getUsersDetailedInRoom(roomId),
       timestamp: new Date()
     });
 
@@ -134,7 +160,8 @@ io.on('connection', (socket) => {
       roomId: roomId,
       maxSeats: maxSeats,
       currentUsers: 1,
-      users: getUsersInRoom(roomId)
+      users: getUsersInRoom(roomId),
+      usersDetailed: getUsersDetailedInRoom(roomId)
     });
 
     emitPublicRoomsUpdate();
@@ -193,7 +220,9 @@ io.on('connection', (socket) => {
     // Notify all users in the room
     io.to(roomId).emit('userJoined', {
       username: username,
+      socketId: socket.id,
       users: getUsersInRoom(roomId),
+      usersDetailed: getUsersDetailedInRoom(roomId),
       timestamp: new Date()
     });
 
@@ -202,7 +231,8 @@ io.on('connection', (socket) => {
       roomId: roomId,
       maxSeats: room.maxSeats,
       currentUsers: currentUsers + 1,
-      users: getUsersInRoom(roomId)
+      users: getUsersInRoom(roomId),
+      usersDetailed: getUsersDetailedInRoom(roomId)
     });
 
     emitPublicRoomsUpdate();
@@ -265,7 +295,9 @@ io.on('connection', (socket) => {
     // Notify other users
     io.to(roomId).emit('userLeft', {
       username: username,
+      socketId: socket.id,
       users: getUsersInRoom(roomId),
+      usersDetailed: getUsersDetailedInRoom(roomId),
       timestamp: new Date()
     });
 
@@ -299,7 +331,9 @@ io.on('connection', (socket) => {
       // Notify other users in the room
       io.to(roomId).emit('userLeft', {
         username: username,
+        socketId: socket.id,
         users: getUsersInRoom(roomId),
+        usersDetailed: getUsersDetailedInRoom(roomId),
         timestamp: new Date()
       });
 
@@ -312,6 +346,78 @@ io.on('connection', (socket) => {
 
       emitPublicRoomsUpdate();
     }
+  });
+
+  /**
+   * WebRTC Signaling: Offer
+   */
+  socket.on('webrtcOffer', (data, callback = () => {}) => {
+    const { roomId, targetSocketId, offer } = data || {};
+    if (!roomId || !targetSocketId || !offer) {
+      return callback({ success: false, message: 'Invalid offer payload' });
+    }
+    if (socket.data.roomId !== roomId) {
+      return callback({ success: false, message: 'Sender is not in this room' });
+    }
+    if (!isSocketInRoom(roomId, targetSocketId)) {
+      return callback({ success: false, message: 'Target user not in room' });
+    }
+
+    io.to(targetSocketId).emit('webrtcOffer', {
+      roomId,
+      fromSocketId: socket.id,
+      fromUsername: socket.data.username,
+      offer
+    });
+    callback({ success: true });
+  });
+
+  /**
+   * WebRTC Signaling: Answer
+   */
+  socket.on('webrtcAnswer', (data, callback = () => {}) => {
+    const { roomId, targetSocketId, answer } = data || {};
+    if (!roomId || !targetSocketId || !answer) {
+      return callback({ success: false, message: 'Invalid answer payload' });
+    }
+    if (socket.data.roomId !== roomId) {
+      return callback({ success: false, message: 'Sender is not in this room' });
+    }
+    if (!isSocketInRoom(roomId, targetSocketId)) {
+      return callback({ success: false, message: 'Target user not in room' });
+    }
+
+    io.to(targetSocketId).emit('webrtcAnswer', {
+      roomId,
+      fromSocketId: socket.id,
+      fromUsername: socket.data.username,
+      answer
+    });
+    callback({ success: true });
+  });
+
+  /**
+   * WebRTC Signaling: ICE Candidate
+   */
+  socket.on('webrtcIceCandidate', (data, callback = () => {}) => {
+    const { roomId, targetSocketId, candidate } = data || {};
+    if (!roomId || !targetSocketId || !candidate) {
+      return callback({ success: false, message: 'Invalid ICE payload' });
+    }
+    if (socket.data.roomId !== roomId) {
+      return callback({ success: false, message: 'Sender is not in this room' });
+    }
+    if (!isSocketInRoom(roomId, targetSocketId)) {
+      return callback({ success: false, message: 'Target user not in room' });
+    }
+
+    io.to(targetSocketId).emit('webrtcIceCandidate', {
+      roomId,
+      fromSocketId: socket.id,
+      fromUsername: socket.data.username,
+      candidate
+    });
+    callback({ success: true });
   });
 });
 

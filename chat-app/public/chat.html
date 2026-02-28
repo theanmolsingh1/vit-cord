@@ -25,10 +25,25 @@
                 <div id="usersList" class="users-list">
                     <!-- Users will be populated here -->
                 </div>
+
+                <div class="av-controls">
+                    <h3>Voice & Video</h3>
+                    <button id="enableAvBtn" type="button" class="btn btn-primary">Enable Voice/Video</button>
+                    <button id="muteBtn" type="button" class="btn btn-send" disabled>Mute Mic</button>
+                    <button id="cameraBtn" type="button" class="btn btn-send" disabled>Turn Camera Off</button>
+                    <button id="stopAvBtn" type="button" class="btn btn-danger" disabled>Stop Voice/Video</button>
+                </div>
             </div>
 
             <!-- Messages Area -->
             <div class="messages-area">
+                <div class="video-section">
+                    <div class="local-video-wrap">
+                        <p class="video-label">You</p>
+                        <video id="localVideo" autoplay playsinline muted></video>
+                    </div>
+                    <div id="remoteVideos" class="remote-videos"></div>
+                </div>
                 <div id="messagesList" class="messages-list">
                     <!-- Messages will be populated here -->
                 </div>
