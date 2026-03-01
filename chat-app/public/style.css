@@ -166,7 +166,24 @@ body {
     font-family: inherit;
 }
 
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    min-height: 110px;
+    resize: vertical;
+    font-family: inherit;
+}
+
 .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -355,6 +372,20 @@ body {
 .btn-vemege:hover {
     color: #fff;
     background: linear-gradient(135deg, #0284c7, #1d4ed8);
+}
+
+.btn-ranters {
+    display: inline-block;
+    width: 100%;
+    text-decoration: none;
+    text-align: center;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+}
+
+.btn-ranters:hover {
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c, #c2410c);
 }
 
 .footer {
@@ -702,6 +733,111 @@ body {
     width: 100%;
 }
 
+/* ==================== Ranters Page ==================== */
+.ranters-container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.ranters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ranters-header h1 {
+    font-size: 30px;
+    margin-bottom: 4px;
+}
+
+.ranters-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    margin-bottom: 16px;
+}
+
+.ranters-muted {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.ranters-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.college-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.college-item {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.college-item:hover {
+    background: #eef2ff;
+}
+
+.ranters-feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.rant-list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rant-item {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px;
+    background: #f9fafb;
+}
+
+.rant-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.rant-author {
+    font-weight: 600;
+}
+
+.rant-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.rant-message {
+    font-size: 14px;
+    line-height: 1.45;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .card {
@@ -747,6 +883,10 @@ body {
 
     .random-main {
         grid-template-columns: 1fr;
+    }
+
+    .ranters-actions {
+        flex-direction: column;
     }
 
     .random-videos {
@@ -828,6 +968,21 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+    }
+
+    .ranters-container {
+        padding: 12px;
+    }
+
+    .ranters-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .ranters-feed-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .random-video-card video {

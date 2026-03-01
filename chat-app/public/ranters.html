@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranters</title>
+    <link rel="stylesheet" href="style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8038820261076298"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="ranters-container">
+        <div class="ranters-header">
+            <div>
+                <h1>Ranters</h1>
+                <p>College-based text feed (last 7 days)</p>
+            </div>
+            <a href="index.html" class="btn btn-send">Back</a>
+        </div>
+
+        <div id="collegeStep" class="ranters-card">
+            <h2>Select Your College</h2>
+            <p class="ranters-muted">Choose from available colleges. If not listed, add your college.</p>
+
+            <div class="form-group">
+                <label for="collegeSearchInput">College Name</label>
+                <input id="collegeSearchInput" type="text" placeholder="Type college name">
+            </div>
+
+            <div class="ranters-actions">
+                <button id="enterCollegeBtn" class="btn btn-primary" type="button">Enter College</button>
+                <button id="addCollegeBtn" class="btn btn-send" type="button">Add Your College</button>
+            </div>
+
+            <h3>Available Colleges</h3>
+            <div id="collegeList" class="college-list"></div>
+            <div id="collegeError" class="error-message" style="display:none;"></div>
+        </div>
+
+        <div id="feedStep" class="ranters-card" style="display:none;">
+            <div class="ranters-feed-header">
+                <h2 id="selectedCollegeTitle">College Feed</h2>
+                <button id="changeCollegeBtn" class="btn btn-back" type="button">Change College</button>
+            </div>
+
+            <p class="ranters-muted">Showing texts sent in the last 7 days.</p>
+
+            <form id="rantForm">
+                <div class="form-group">
+                    <label for="rantAuthorInput">Name to be shown</label>
+                    <input id="rantAuthorInput" type="text" maxlength="30" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="rantMessageInput">Your Text</label>
+                    <textarea id="rantMessageInput" maxlength="1000" placeholder="Write your rant..." required></textarea>
+                </div>
+                <button id="postRantBtn" class="btn btn-primary" type="submit">Post</button>
+            </form>
+
+            <div id="rantError" class="error-message" style="display:none;"></div>
+            <div id="rantList" class="rant-list"></div>
+        </div>
+    </div>
+
+    <script src="ranters.js"></script>
+</body>
+</html>

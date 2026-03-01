@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
+const { Pool } = require('pg');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +14,72 @@ const io = socketIO(server, {
 });
 
 // Middleware
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Render Postgres configuration for Ranters feature
+const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+const dbPool = hasDatabaseUrl ? new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+}) : null;
+let rantersDbReady = false;
+
+async function initializeRantersDatabase() {
+  if (!dbPool) {
+    console.warn('Ranters DB disabled: DATABASE_URL is not set.');
+    return;
+  }
+
+  await dbPool.query(`
+    CREATE TABLE IF NOT EXISTS ranter_colleges (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await dbPool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ranter_colleges_name_unique
+    ON ranter_colleges (LOWER(name));
+  `);
+
+  await dbPool.query(`
+    CREATE TABLE IF NOT EXISTS ranter_posts (
+      id BIGSERIAL PRIMARY KEY,
+      college_id INTEGER NOT NULL REFERENCES ranter_colleges(id) ON DELETE CASCADE,
+      author TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await dbPool.query(`
+    CREATE INDEX IF NOT EXISTS ranter_posts_college_created_idx
+    ON ranter_posts (college_id, created_at DESC);
+  `);
+
+  rantersDbReady = true;
+}
+
+function validateRanterName(name) {
+  return typeof name === 'string' &&
+    name.trim().length >= 2 &&
+    name.trim().length <= 30 &&
+    /^[a-zA-Z0-9_-]+$/.test(name.trim());
+}
+
+function validateCollegeName(name) {
+  return typeof name === 'string' &&
+    name.trim().length >= 2 &&
+    name.trim().length <= 80;
+}
+
+function validateRantMessage(message) {
+  return typeof message === 'string' &&
+    message.trim().length >= 1 &&
+    message.trim().length <= 1000;
+}
 
 // In-memory data structure for rooms
 const rooms = {};
@@ -594,6 +660,159 @@ io.on('connection', (socket) => {
   });
 });
 
+/**
+ * Ranters APIs
+ */
+app.get('/api/ranters/colleges', async (req, res) => {
+  if (!rantersDbReady) {
+    return res.status(503).json({ success: false, message: 'Ranters database is not configured' });
+  }
+
+  const queryText = String(req.query.q || '').trim();
+
+  try {
+    if (queryText.length > 0) {
+      const result = await dbPool.query(`
+        SELECT c.name,
+               COUNT(p.id) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days')::INT AS posts_last_week
+        FROM ranter_colleges c
+        LEFT JOIN ranter_posts p ON p.college_id = c.id
+        WHERE c.name ILIKE $1
+        GROUP BY c.id, c.name
+        ORDER BY c.name ASC
+        LIMIT 50
+      `, [`%${queryText}%`]);
+      return res.json({ success: true, colleges: result.rows });
+    }
+
+    const result = await dbPool.query(`
+      SELECT c.name,
+             COUNT(p.id) FILTER (WHERE p.created_at >= NOW() - INTERVAL '7 days')::INT AS posts_last_week
+      FROM ranter_colleges c
+      LEFT JOIN ranter_posts p ON p.college_id = c.id
+      GROUP BY c.id, c.name
+      ORDER BY posts_last_week DESC, c.name ASC
+      LIMIT 100
+    `);
+    return res.json({ success: true, colleges: result.rows });
+  } catch (error) {
+    console.error('Ranters colleges fetch error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch colleges' });
+  }
+});
+
+app.post('/api/ranters/colleges', async (req, res) => {
+  if (!rantersDbReady) {
+    return res.status(503).json({ success: false, message: 'Ranters database is not configured' });
+  }
+
+  const name = String(req.body?.name || '').trim();
+  if (!validateCollegeName(name)) {
+    return res.status(400).json({ success: false, message: 'College name must be 2 to 80 characters' });
+  }
+
+  try {
+    const result = await dbPool.query(`
+      INSERT INTO ranter_colleges (name)
+      VALUES ($1)
+      ON CONFLICT (LOWER(name))
+      DO UPDATE SET name = EXCLUDED.name
+      RETURNING id, name
+    `, [name]);
+    return res.json({ success: true, college: result.rows[0] });
+  } catch (error) {
+    console.error('Ranters add college error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to save college' });
+  }
+});
+
+app.get('/api/ranters/posts', async (req, res) => {
+  if (!rantersDbReady) {
+    return res.status(503).json({ success: false, message: 'Ranters database is not configured' });
+  }
+
+  const college = String(req.query.college || '').trim();
+  if (!validateCollegeName(college)) {
+    return res.status(400).json({ success: false, message: 'Valid college is required' });
+  }
+
+  try {
+    const collegeResult = await dbPool.query(
+      'SELECT id, name FROM ranter_colleges WHERE LOWER(name) = LOWER($1) LIMIT 1',
+      [college]
+    );
+
+    if (collegeResult.rows.length === 0) {
+      return res.json({ success: true, college: college, posts: [] });
+    }
+
+    const collegeId = collegeResult.rows[0].id;
+    const postsResult = await dbPool.query(`
+      SELECT author, message, created_at
+      FROM ranter_posts
+      WHERE college_id = $1
+        AND created_at >= NOW() - INTERVAL '7 days'
+      ORDER BY created_at DESC
+      LIMIT 500
+    `, [collegeId]);
+
+    return res.json({
+      success: true,
+      college: collegeResult.rows[0].name,
+      posts: postsResult.rows
+    });
+  } catch (error) {
+    console.error('Ranters posts fetch error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch posts' });
+  }
+});
+
+app.post('/api/ranters/posts', async (req, res) => {
+  if (!rantersDbReady) {
+    return res.status(503).json({ success: false, message: 'Ranters database is not configured' });
+  }
+
+  const collegeName = String(req.body?.collegeName || '').trim();
+  const author = String(req.body?.author || '').trim();
+  const message = String(req.body?.message || '').trim();
+
+  if (!validateCollegeName(collegeName)) {
+    return res.status(400).json({ success: false, message: 'Valid college is required' });
+  }
+  if (!validateRanterName(author)) {
+    return res.status(400).json({ success: false, message: 'Name must be 2-30 letters, numbers, underscores or hyphens' });
+  }
+  if (!validateRantMessage(message)) {
+    return res.status(400).json({ success: false, message: 'Message must be 1 to 1000 characters' });
+  }
+
+  try {
+    const collegeResult = await dbPool.query(`
+      INSERT INTO ranter_colleges (name)
+      VALUES ($1)
+      ON CONFLICT (LOWER(name))
+      DO UPDATE SET name = EXCLUDED.name
+      RETURNING id, name
+    `, [collegeName]);
+
+    const collegeId = collegeResult.rows[0].id;
+
+    const insertResult = await dbPool.query(`
+      INSERT INTO ranter_posts (college_id, author, message)
+      VALUES ($1, $2, $3)
+      RETURNING author, message, created_at
+    `, [collegeId, author, message]);
+
+    return res.json({
+      success: true,
+      post: insertResult.rows[0]
+    });
+  } catch (error) {
+    console.error('Ranters post create error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to save post' });
+  }
+});
+
 // Root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -601,17 +820,20 @@ app.get('/', (req, res) => {
 
 // Server startup
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`
-╔════════════════════════════════════════╗
-║     Chat Application Server Started    ║
-╚════════════════════════════════════════╝
-  
-  Server running on: http://localhost:${PORT}
-  
-  Open your browser and navigate to:
-  http://localhost:${PORT}
-  
-  Press Ctrl+C to stop the server
-  `);
-});
+
+async function startServer() {
+  try {
+    await initializeRantersDatabase();
+    if (rantersDbReady) {
+      console.log('Ranters DB initialized successfully.');
+    }
+  } catch (error) {
+    console.error('Ranters DB initialization failed:', error);
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Server running on: http://localhost:${PORT}`);
+  });
+}
+
+startServer();
