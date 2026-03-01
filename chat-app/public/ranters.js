@@ -1,5 +1,6 @@
 const collegeStep = document.getElementById('collegeStep');
 const feedStep = document.getElementById('feedStep');
+const rantersTopHeader = document.getElementById('rantersTopHeader');
 const collegeSearchInput = document.getElementById('collegeSearchInput');
 const enterCollegeBtn = document.getElementById('enterCollegeBtn');
 const addCollegeBtn = document.getElementById('addCollegeBtn');
@@ -9,7 +10,6 @@ const collegeError = document.getElementById('collegeError');
 const selectedCollegeTitle = document.getElementById('selectedCollegeTitle');
 const changeCollegeBtn = document.getElementById('changeCollegeBtn');
 const rantForm = document.getElementById('rantForm');
-const rantAuthorInput = document.getElementById('rantAuthorInput');
 const rantMessageInput = document.getElementById('rantMessageInput');
 const rantList = document.getElementById('rantList');
 const rantError = document.getElementById('rantError');
@@ -17,6 +17,7 @@ const postRantBtn = document.getElementById('postRantBtn');
 
 let colleges = [];
 let selectedCollege = '';
+let displayName = '';
 
 function showError(el, message) {
     el.textContent = message;
@@ -47,6 +48,39 @@ function validateCollegeName(name) {
 
 function validateMessage(message) {
     return typeof message === 'string' && message.trim().length >= 1 && message.trim().length <= 1000;
+}
+
+function setChatMode(enabled) {
+    if (enabled) {
+        rantersTopHeader.style.display = 'none';
+        collegeStep.style.display = 'none';
+        feedStep.style.display = 'flex';
+        return;
+    }
+    feedStep.style.display = 'none';
+    collegeStep.style.display = 'block';
+    rantersTopHeader.style.display = 'flex';
+}
+
+function ensureDisplayName() {
+    const saved = (sessionStorage.getItem('rantersDisplayName') || '').trim();
+    if (validateName(saved)) {
+        displayName = saved;
+        return true;
+    }
+
+    const enteredName = window.prompt('Name to be shown:', '');
+    if (enteredName === null) return false;
+
+    const name = enteredName.trim();
+    if (!validateName(name)) {
+        showError(collegeError, 'Name must be 2-30 letters, numbers, underscores or hyphens.');
+        return false;
+    }
+
+    displayName = name;
+    sessionStorage.setItem('rantersDisplayName', name);
+    return true;
 }
 
 async function fetchJson(url, options = {}) {
@@ -99,16 +133,11 @@ async function ensureCollegeExists(collegeName) {
 }
 
 async function enterCollege(collegeName) {
+    if (!ensureDisplayName()) return;
     selectedCollege = collegeName;
     selectedCollegeTitle.textContent = `${collegeName} - Weekly Feed`;
-    collegeStep.style.display = 'none';
-    feedStep.style.display = 'block';
+    setChatMode(true);
     sessionStorage.setItem('rantersCollege', collegeName);
-
-    const savedName = sessionStorage.getItem('rantersDisplayName') || '';
-    if (savedName) {
-        rantAuthorInput.value = savedName;
-    }
 
     await loadRants();
 }
@@ -155,9 +184,11 @@ function renderRants(posts) {
         return;
     }
 
-    posts.forEach((post) => {
+    const ordered = [...posts].reverse();
+    ordered.forEach((post) => {
+        const isMine = post.author === displayName;
         const card = document.createElement('div');
-        card.className = 'rant-item';
+        card.className = isMine ? 'rant-item rant-item-mine' : 'rant-item';
         card.innerHTML = `
             <div class="rant-head">
                 <span class="rant-author">${escapeHtml(post.author)}</span>
@@ -167,6 +198,8 @@ function renderRants(posts) {
         `;
         rantList.appendChild(card);
     });
+
+    rantList.scrollTop = rantList.scrollHeight;
 }
 
 async function loadRants() {
@@ -183,11 +216,10 @@ async function handlePostRant(e) {
     e.preventDefault();
     clearError(rantError);
 
-    const author = rantAuthorInput.value.trim();
     const message = rantMessageInput.value.trim();
 
-    if (!validateName(author)) {
-        showError(rantError, 'Name must be 2-30 letters, numbers, underscores or hyphens.');
+    if (!validateName(displayName)) {
+        showError(rantError, 'Invalid display name. Re-enter college and try again.');
         return;
     }
     if (!validateMessage(message)) {
@@ -203,11 +235,10 @@ async function handlePostRant(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 collegeName: selectedCollege,
-                author,
+                author: displayName,
                 message
             })
         });
-        sessionStorage.setItem('rantersDisplayName', author);
         rantMessageInput.value = '';
         await loadRants();
     } catch (error) {
@@ -226,8 +257,7 @@ collegeSearchInput.addEventListener('input', (e) => {
 });
 
 changeCollegeBtn.addEventListener('click', () => {
-    feedStep.style.display = 'none';
-    collegeStep.style.display = 'block';
+    setChatMode(false);
     selectedCollege = '';
     sessionStorage.removeItem('rantersCollege');
 });
@@ -235,6 +265,7 @@ changeCollegeBtn.addEventListener('click', () => {
 rantForm.addEventListener('submit', handlePostRant);
 
 window.addEventListener('load', async () => {
+    setChatMode(false);
     await loadColleges();
     const savedCollege = (sessionStorage.getItem('rantersCollege') || '').trim();
     if (savedCollege) {

@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="ranters-container">
-        <div class="ranters-header">
+        <div id="rantersTopHeader" class="ranters-header">
             <div>
                 <h1>Ranters</h1>
                 <p>College-based text feed (last 7 days)</p>
@@ -37,28 +37,24 @@
             <div id="collegeError" class="error-message" style="display:none;"></div>
         </div>
 
-        <div id="feedStep" class="ranters-card" style="display:none;">
-            <div class="ranters-feed-header">
-                <h2 id="selectedCollegeTitle">College Feed</h2>
+        <div id="feedStep" class="ranters-chat-screen" style="display:none;">
+            <div class="ranters-chat-header">
+                <div>
+                    <h2 id="selectedCollegeTitle">College Feed</h2>
+                    <p class="ranters-chat-subtitle">Texts sent in last 7 days</p>
+                </div>
                 <button id="changeCollegeBtn" class="btn btn-back" type="button">Change College</button>
             </div>
 
-            <p class="ranters-muted">Showing texts sent in the last 7 days.</p>
+            <div id="rantList" class="ranters-chat-list"></div>
+            <div id="rantError" class="error-message ranters-chat-error" style="display:none;"></div>
 
-            <form id="rantForm">
-                <div class="form-group">
-                    <label for="rantAuthorInput">Name to be shown</label>
-                    <input id="rantAuthorInput" type="text" maxlength="30" placeholder="Your name" required>
+            <form id="rantForm" class="ranters-chat-footer">
+                <div class="ranters-chat-input-group">
+                    <input id="rantMessageInput" type="text" maxlength="1000" placeholder="Type your text..." required>
+                    <button id="postRantBtn" class="btn btn-send" type="submit">Send</button>
                 </div>
-                <div class="form-group">
-                    <label for="rantMessageInput">Your Text</label>
-                    <textarea id="rantMessageInput" maxlength="1000" placeholder="Write your rant..." required></textarea>
-                </div>
-                <button id="postRantBtn" class="btn btn-primary" type="submit">Post</button>
             </form>
-
-            <div id="rantError" class="error-message" style="display:none;"></div>
-            <div id="rantList" class="rant-list"></div>
         </div>
     </div>
 
