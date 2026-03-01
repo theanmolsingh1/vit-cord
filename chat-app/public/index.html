@@ -21,7 +21,7 @@
                     <h3>Choose Chat Mode</h3>
                     <div class="landing-actions">
                         <button id="showJoinRoomFlowBtn" type="button" class="btn btn-primary">Join Room</button>
-                        <a href="random.html" class="btn btn-vemege">Random Chat</a>
+                        <a id="openRandomChatBtn" href="random.html" class="btn btn-vemege">Random Chat</a>
                     </div>
                 </div>
 
@@ -36,38 +36,13 @@
 
                     <!-- Join Room Tab -->
                     <div id="join-tab" class="tab-content active">
-                        <form id="joinForm">
-                            <div class="form-group">
-                                <label for="joinUsername">Your Name</label>
-                                <input type="text" id="joinUsername" placeholder="Enter your username" maxlength="30" required>
+                        <div class="join-hint">Select a public room. You will be asked for a name before joining.</div>
+                        <div class="public-rooms-section join-public-rooms">
+                            <h3>Available Public Rooms</h3>
+                            <div id="publicRoomsList" class="public-rooms-list">
+                                <p class="empty-state">No public rooms yet.</p>
                             </div>
-
-                            <div class="form-group">
-                                <label for="joinRoomId">Room ID</label>
-                                <input type="text" id="joinRoomId" placeholder="Enter room ID to join" maxlength="50" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Join Type</label>
-                                <div class="room-type-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="joinRoomType" value="public" checked>
-                                        <span>Public Room</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="joinRoomType" value="private">
-                                        <span>Private Room</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="form-group" id="joinPasswordGroup" style="display: none;">
-                                <label for="joinPassword">Room Password</label>
-                                <input type="password" id="joinPassword" placeholder="Enter private room password" maxlength="50">
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">Join Room</button>
-                        </form>
+                        </div>
                     </div>
 
                     <!-- Create Room Tab -->
@@ -113,13 +88,6 @@
 
                     <!-- Error Message Display -->
                     <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-                    <div class="public-rooms-section">
-                        <h3>Public Rooms</h3>
-                        <div id="publicRoomsList" class="public-rooms-list">
-                            <p class="empty-state">No public rooms yet.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

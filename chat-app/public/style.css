@@ -314,6 +314,18 @@ body {
     color: var(--text-secondary);
 }
 
+.join-hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.join-public-rooms {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
 .vemege-section {
     margin-top: 18px;
     border-top: 1px solid var(--border-color);

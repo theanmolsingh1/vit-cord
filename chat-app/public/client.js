@@ -7,13 +7,7 @@
 const socket = io();
 
 // DOM Elements
-const joinForm = document.getElementById('joinForm');
 const createForm = document.getElementById('createForm');
-const joinUsername = document.getElementById('joinUsername');
-const joinRoomId = document.getElementById('joinRoomId');
-const joinPassword = document.getElementById('joinPassword');
-const joinPasswordGroup = document.getElementById('joinPasswordGroup');
-const joinTypeInputs = document.querySelectorAll('input[name="joinRoomType"]');
 const createUsername = document.getElementById('createUsername');
 const createRoomId = document.getElementById('createRoomId');
 const maxSeats = document.getElementById('maxSeats');
@@ -27,6 +21,7 @@ const landingChoices = document.getElementById('landingChoices');
 const roomFlow = document.getElementById('roomFlow');
 const showJoinRoomFlowBtn = document.getElementById('showJoinRoomFlowBtn');
 const backToChoicesBtn = document.getElementById('backToChoicesBtn');
+const openRandomChatBtn = document.getElementById('openRandomChatBtn');
 
 function showRoomFlow() {
     landingChoices.style.display = 'none';
@@ -90,20 +85,6 @@ function setCreatePasswordVisibility() {
     }
 }
 
-function getSelectedJoinType() {
-    const selected = document.querySelector('input[name="joinRoomType"]:checked');
-    return selected ? selected.value : 'public';
-}
-
-function setJoinPasswordVisibility() {
-    const joinType = getSelectedJoinType();
-    joinPasswordGroup.style.display = joinType === 'private' ? 'block' : 'none';
-    joinPassword.required = joinType === 'private';
-    if (joinType !== 'private') {
-        joinPassword.value = '';
-    }
-}
-
 /**
  * Validate username
  */
@@ -160,7 +141,7 @@ function validatePassword(password) {
 function setFormSubmitting(form, isSubmitting) {
     const button = form.querySelector('button[type="submit"]');
     button.disabled = isSubmitting;
-    button.textContent = isSubmitting ? 'Connecting...' : (form.id === 'joinForm' ? 'Join Room' : 'Create Room');
+    button.textContent = isSubmitting ? 'Connecting...' : 'Create Room';
 }
 
 function formatCreatedAt(isoDate) {
@@ -168,19 +149,40 @@ function formatCreatedAt(isoDate) {
     return date.toLocaleString();
 }
 
-function switchToJoinWithRoom(roomId) {
+function activateTab(tabName) {
     showRoomFlow();
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelector('.tab-btn[data-tab="join-tab"]').classList.add('active');
-    document.getElementById('join-tab').classList.add('active');
-    const publicJoinType = document.querySelector('input[name="joinRoomType"][value="public"]');
-    if (publicJoinType) {
-        publicJoinType.checked = true;
-        setJoinPasswordVisibility();
+    const selectedBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    const selectedTab = document.getElementById(tabName);
+    if (selectedBtn && selectedTab) {
+        selectedBtn.classList.add('active');
+        selectedTab.classList.add('active');
     }
-    joinRoomId.value = roomId;
-    joinUsername.focus();
+}
+
+function joinPublicRoom(roomId) {
+    activateTab('join-tab');
+
+    const enteredName = window.prompt('Name to be shown:', '');
+    if (enteredName === null) {
+        return;
+    }
+
+    const username = enteredName.trim();
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.valid) {
+        showError(usernameValidation.message);
+        return;
+    }
+
+    sessionStorage.setItem('username', username);
+    sessionStorage.setItem('roomId', roomId);
+    sessionStorage.setItem('pendingAction', 'join');
+    sessionStorage.setItem('pendingPassword', '');
+    sessionStorage.removeItem('pendingMaxSeats');
+    sessionStorage.removeItem('pendingIsPublic');
+    window.location.href = 'chat.html';
 }
 
 function renderPublicRooms(rooms) {
@@ -203,56 +205,10 @@ function renderPublicRooms(rooms) {
         `;
 
         const joinBtn = roomEl.querySelector('.btn-public-join');
-        joinBtn.addEventListener('click', () => switchToJoinWithRoom(room.roomId));
+        joinBtn.addEventListener('click', () => joinPublicRoom(room.roomId));
         publicRoomsList.appendChild(roomEl);
     });
 }
-
-/**
- * Handle Join Room Form Submission
- */
-joinForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const username = joinUsername.value.trim();
-    const roomId = joinRoomId.value.trim();
-    const joinType = getSelectedJoinType();
-    const isPrivateJoin = joinType === 'private';
-    const password = isPrivateJoin ? joinPassword.value : '';
-
-    // Validation
-    const usernameValidation = validateUsername(username);
-    if (!usernameValidation.valid) {
-        showError(usernameValidation.message);
-        return;
-    }
-
-    const roomIdValidation = validateRoomId(roomId);
-    if (!roomIdValidation.valid) {
-        showError(roomIdValidation.message);
-        return;
-    }
-
-    if (isPrivateJoin) {
-        const passwordValidation = validatePassword(password);
-        if (!passwordValidation.valid) {
-            showError(passwordValidation.message);
-            return;
-        }
-    }
-
-    hideError();
-    setFormSubmitting(joinForm, true);
-
-    // Persist intent; actual join happens from chat.js on the active chat socket
-    sessionStorage.setItem('username', username);
-    sessionStorage.setItem('roomId', roomId);
-    sessionStorage.setItem('pendingAction', 'join');
-    sessionStorage.setItem('pendingPassword', password || '');
-    sessionStorage.removeItem('pendingMaxSeats');
-    sessionStorage.removeItem('pendingIsPublic');
-    window.location.href = 'chat.html';
-});
 
 /**
  * Handle Create Room Form Submission
@@ -310,17 +266,32 @@ roomTypeInputs.forEach((input) => {
     input.addEventListener('change', setCreatePasswordVisibility);
 });
 
-joinTypeInputs.forEach((input) => {
-    input.addEventListener('change', setJoinPasswordVisibility);
-});
-
 showJoinRoomFlowBtn.addEventListener('click', () => {
     showRoomFlow();
-    joinUsername.focus();
+    activateTab('join-tab');
 });
 
 backToChoicesBtn.addEventListener('click', () => {
     showLandingChoices();
+});
+
+openRandomChatBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const enteredName = window.prompt('Name to be shown:', '');
+    if (enteredName === null) {
+        return;
+    }
+
+    const username = enteredName.trim();
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.valid) {
+        showError(usernameValidation.message);
+        return;
+    }
+
+    sessionStorage.setItem('randomDisplayName', username);
+    window.location.href = 'random.html';
 });
 
 socket.on('publicRooms', (rooms) => {
@@ -332,5 +303,4 @@ socket.on('connect_error', () => {
 });
 
 setCreatePasswordVisibility();
-setJoinPasswordVisibility();
 showLandingChoices();

@@ -6,6 +6,7 @@ let partnerSocketId = null;
 let started = false;
 let muted = false;
 let cameraOff = false;
+let displayName = '';
 
 const rtcConfig = {
     iceServers: [
@@ -14,7 +15,6 @@ const rtcConfig = {
     ]
 };
 
-const randomUsername = document.getElementById('randomUsername');
 const randomLocalVideo = document.getElementById('randomLocalVideo');
 const randomRemoteVideo = document.getElementById('randomRemoteVideo');
 const randomPartnerLabel = document.getElementById('randomPartnerLabel');
@@ -25,6 +25,37 @@ const randomNextBtn = document.getElementById('randomNextBtn');
 const randomMuteBtn = document.getElementById('randomMuteBtn');
 const randomCameraBtn = document.getElementById('randomCameraBtn');
 const randomStopBtn = document.getElementById('randomStopBtn');
+
+function validateUsername(username) {
+    if (!username || username.trim().length === 0) return false;
+    if (username.trim().length < 2) return false;
+    if (username.length > 30) return false;
+    return /^[a-zA-Z0-9_-]+$/.test(username);
+}
+
+function resolveDisplayName() {
+    const savedName = (sessionStorage.getItem('randomDisplayName') || '').trim();
+    if (validateUsername(savedName)) {
+        displayName = savedName;
+        return true;
+    }
+
+    const enteredName = window.prompt('Name to be shown:', '');
+    if (enteredName === null) {
+        window.location.href = 'index.html';
+        return false;
+    }
+
+    const username = enteredName.trim();
+    if (!validateUsername(username)) {
+        setStatus('Use 2-30 chars: letters, numbers, hyphen, underscore.');
+        return false;
+    }
+
+    displayName = username;
+    sessionStorage.setItem('randomDisplayName', username);
+    return true;
+}
 
 function setStatus(message) {
     randomStatus.textContent = message;
@@ -105,12 +136,12 @@ async function ensureMedia() {
 
 async function startRandom() {
     if (started) return;
+    if (!displayName && !resolveDisplayName()) return;
 
     const ok = await ensureMedia();
     if (!ok) return;
 
-    const username = (randomUsername.value || '').trim();
-    socket.emit('randomJoin', { username }, (response) => {
+    socket.emit('randomJoin', { username: displayName }, (response) => {
         if (!response || !response.success) {
             setStatus('Failed to start random chat.');
             return;
@@ -251,3 +282,5 @@ window.addEventListener('beforeunload', () => {
         localStream.getTracks().forEach((track) => track.stop());
     }
 });
+
+resolveDisplayName();
