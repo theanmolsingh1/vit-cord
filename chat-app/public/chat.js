@@ -517,11 +517,10 @@ socket.on('webrtcOffer', async (data) => {
     if (!fromSocketId || !offer) return;
 
     if (!mediaEnabled) {
-        const enabled = await enableVoiceVideo({ skipInitiate: true });
-        if (!enabled) {
-            showStatus(`Incoming call from ${fromUsername || 'user'} requires mic/camera access`, 3000);
-            return;
-        }
+        // Do not auto-enable local camera/mic on incoming offer.
+        // User must explicitly click "Enable Voice/Video".
+        showStatus(`${fromUsername || 'User'} started AV. Click "Enable Voice/Video" to join.`, 3000);
+        return;
     }
 
     try {
