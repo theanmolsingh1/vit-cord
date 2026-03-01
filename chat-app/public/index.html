@@ -44,6 +44,7 @@
                     <!-- Tab Navigation -->
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="join-tab">Join Room</button>
+                        <button class="tab-btn" data-tab="private-join-tab">Join Private Room</button>
                         <button class="tab-btn" data-tab="create-tab">Create Room</button>
                     </div>
 
@@ -56,6 +57,28 @@
                                 <p class="empty-state">No public rooms yet.</p>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Private Join Tab -->
+                    <div id="private-join-tab" class="tab-content">
+                        <form id="privateJoinForm">
+                            <div class="form-group">
+                                <label for="privateJoinUsername">Your Name</label>
+                                <input type="text" id="privateJoinUsername" placeholder="Enter your username" maxlength="30" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="privateJoinRoomId">Private Room ID</label>
+                                <input type="text" id="privateJoinRoomId" placeholder="Enter private room ID" maxlength="50" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="privateJoinPassword">Room Password</label>
+                                <input type="password" id="privateJoinPassword" placeholder="Enter room password" maxlength="50" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Join Private Room</button>
+                        </form>
                     </div>
 
                     <!-- Create Room Tab -->

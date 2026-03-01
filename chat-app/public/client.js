@@ -7,6 +7,10 @@
 const socket = io();
 
 // DOM Elements
+const privateJoinForm = document.getElementById('privateJoinForm');
+const privateJoinUsername = document.getElementById('privateJoinUsername');
+const privateJoinRoomId = document.getElementById('privateJoinRoomId');
+const privateJoinPassword = document.getElementById('privateJoinPassword');
 const createForm = document.getElementById('createForm');
 const createUsername = document.getElementById('createUsername');
 const createRoomId = document.getElementById('createRoomId');
@@ -141,7 +145,8 @@ function validatePassword(password) {
 function setFormSubmitting(form, isSubmitting) {
     const button = form.querySelector('button[type="submit"]');
     button.disabled = isSubmitting;
-    button.textContent = isSubmitting ? 'Connecting...' : 'Create Room';
+    const defaultLabel = form.id === 'createForm' ? 'Create Room' : 'Join Private Room';
+    button.textContent = isSubmitting ? 'Connecting...' : defaultLabel;
 }
 
 function formatCreatedAt(isoDate) {
@@ -209,6 +214,46 @@ function renderPublicRooms(rooms) {
         publicRoomsList.appendChild(roomEl);
     });
 }
+
+/**
+ * Handle Private Join Form Submission
+ */
+privateJoinForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const username = privateJoinUsername.value.trim();
+    const roomId = privateJoinRoomId.value.trim();
+    const password = privateJoinPassword.value;
+
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.valid) {
+        showError(usernameValidation.message);
+        return;
+    }
+
+    const roomIdValidation = validateRoomId(roomId);
+    if (!roomIdValidation.valid) {
+        showError(roomIdValidation.message);
+        return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+        showError(passwordValidation.message);
+        return;
+    }
+
+    hideError();
+    setFormSubmitting(privateJoinForm, true);
+
+    sessionStorage.setItem('username', username);
+    sessionStorage.setItem('roomId', roomId);
+    sessionStorage.setItem('pendingAction', 'join');
+    sessionStorage.setItem('pendingPassword', password);
+    sessionStorage.removeItem('pendingMaxSeats');
+    sessionStorage.removeItem('pendingIsPublic');
+    window.location.href = 'chat.html';
+});
 
 /**
  * Handle Create Room Form Submission
