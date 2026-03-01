@@ -46,17 +46,36 @@
                 <button id="changeCollegeBtn" class="btn btn-back" type="button">Change College</button>
             </div>
 
-            <div id="rantList" class="ranters-chat-list"></div>
-            <div id="rantError" class="error-message ranters-chat-error" style="display:none;"></div>
+                <div id="rantList" class="ranters-chat-list"></div>
+                <div id="rantError" class="error-message ranters-chat-error" style="display:none;"></div>
 
-            <form id="rantForm" class="ranters-chat-footer">
-                <div class="ranters-chat-input-group">
-                    <input id="rantMessageInput" type="text" maxlength="1000" placeholder="Type your text..." required>
-                    <button id="postRantBtn" class="btn btn-send" type="submit">Send</button>
-                </div>
-            </form>
+                <form id="rantForm" class="ranters-chat-footer">
+                    <div class="ranters-chat-input-group">
+                        <button id="rantEmojiToggleBtn" class="btn btn-send emoji-toggle-btn" type="button" title="Add emoji">😊</button>
+                        <input id="rantMessageInput" type="text" maxlength="1000" placeholder="Type your text..." required>
+                        <button id="postRantBtn" class="btn btn-send" type="submit">Send</button>
+                    </div>
+                    <div id="rantEmojiPanel" class="emoji-panel" style="display:none;">
+                        <button type="button" class="emoji-btn">😀</button>
+                        <button type="button" class="emoji-btn">😂</button>
+                        <button type="button" class="emoji-btn">😍</button>
+                        <button type="button" class="emoji-btn">🔥</button>
+                        <button type="button" class="emoji-btn">✨</button>
+                        <button type="button" class="emoji-btn">👍</button>
+                        <button type="button" class="emoji-btn">🙏</button>
+                        <button type="button" class="emoji-btn">💯</button>
+                        <button type="button" class="emoji-btn">🎉</button>
+                        <button type="button" class="emoji-btn">😎</button>
+                        <button type="button" class="emoji-btn">🥳</button>
+                        <button type="button" class="emoji-btn">🤝</button>
+                        <button type="button" class="emoji-btn">❤️</button>
+                        <button type="button" class="emoji-btn">😢</button>
+                        <button type="button" class="emoji-btn">🤔</button>
+                        <button type="button" class="emoji-btn">👀</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
 
     <script src="ranters.js"></script>
 </body>

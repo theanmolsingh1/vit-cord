@@ -14,6 +14,8 @@ const rantMessageInput = document.getElementById('rantMessageInput');
 const rantList = document.getElementById('rantList');
 const rantError = document.getElementById('rantError');
 const postRantBtn = document.getElementById('postRantBtn');
+const rantEmojiToggleBtn = document.getElementById('rantEmojiToggleBtn');
+const rantEmojiPanel = document.getElementById('rantEmojiPanel');
 
 let colleges = [];
 let selectedCollege = '';
@@ -48,6 +50,18 @@ function validateCollegeName(name) {
 
 function validateMessage(message) {
     return typeof message === 'string' && message.trim().length >= 1 && message.trim().length <= 1000;
+}
+
+function insertEmojiAtCursor(input, emoji) {
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const original = input.value;
+    const next = `${original.slice(0, start)}${emoji}${original.slice(end)}`;
+    if (next.length > 1000) return;
+    input.value = next;
+    const cursor = start + emoji.length;
+    input.setSelectionRange(cursor, cursor);
+    input.focus();
 }
 
 function setChatMode(enabled) {
@@ -263,6 +277,22 @@ changeCollegeBtn.addEventListener('click', () => {
 });
 
 rantForm.addEventListener('submit', handlePostRant);
+
+rantEmojiToggleBtn.addEventListener('click', () => {
+    rantEmojiPanel.style.display = rantEmojiPanel.style.display === 'none' ? 'flex' : 'none';
+});
+
+document.querySelectorAll('.emoji-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        insertEmojiAtCursor(rantMessageInput, btn.textContent);
+    });
+});
+
+document.addEventListener('click', (e) => {
+    if (!rantEmojiPanel.contains(e.target) && e.target !== rantEmojiToggleBtn) {
+        rantEmojiPanel.style.display = 'none';
+    }
+});
 
 window.addEventListener('load', async () => {
     setChatMode(false);

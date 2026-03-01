@@ -1635,6 +1635,40 @@ body {
     font-size: 14px;
 }
 
+.emoji-toggle-btn {
+    flex: 0 0 auto;
+    width: 46px;
+    padding: 10px 0;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.emoji-panel {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    background: #0b1220;
+}
+
+.emoji-btn {
+    border: 1px solid #334155;
+    background: #111c34;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.emoji-btn:hover {
+    background: #1e293b;
+}
+
 .ranters-chat-error {
     margin: 0 12px 10px 12px;
 }
