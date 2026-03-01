@@ -981,6 +981,10 @@ body {
     color: #93c5fd;
 }
 
+.random-header .btn {
+    text-decoration: none;
+}
+
 .random-main {
     max-width: 980px;
     margin: 0 auto;
@@ -1170,6 +1174,11 @@ body {
     outline: none;
     border-color: #38bdf8;
     box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+.random-chat-status {
+    margin-top: 8px;
+    margin-bottom: 0;
 }
 
 /* ==================== Unified Dark Theme (Chat + Ranters) ==================== */
@@ -1395,6 +1404,10 @@ body {
 .ranters-page .ranters-chat-input-group input:focus {
     border-color: #38bdf8;
     box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+.ranters-page .ranters-header .btn {
+    text-decoration: none;
 }
 
 .ranters-page .btn-back {

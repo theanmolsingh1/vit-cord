@@ -15,7 +15,7 @@
                 <h1>Vemege</h1>
                 <p>Random one-on-one video chat</p>
             </div>
-            <a href="index.html" class="btn btn-send">Back To Rooms</a>
+            <a href="index.html" class="btn btn-send">Back</a>
         </div>
 
         <div class="random-main">
@@ -37,8 +37,6 @@
                 </div>
 
                 <div class="random-bottom">
-                    <div id="randomStatus" class="status-message">Matching starts automatically...</div>
-
                     <div class="random-controls">
                         <button id="randomNextBtn" class="btn btn-send" type="button" disabled>Next Stranger</button>
                         <button id="randomMuteBtn" class="btn btn-send" type="button" disabled>Mute Mic</button>
@@ -54,6 +52,7 @@
             <div class="random-chat-panel">
                 <h3>Chat</h3>
                 <div id="randomChatList" class="random-chat-list"></div>
+                <div id="randomStatus" class="status-message random-chat-status">Matching starts automatically...</div>
                 <form id="randomChatForm" class="random-chat-form">
                     <input id="randomChatInput" type="text" maxlength="500" placeholder="Type a message to stranger..." autocomplete="off" disabled>
                     <button id="randomChatSendBtn" class="btn btn-send" type="submit" disabled>Send</button>

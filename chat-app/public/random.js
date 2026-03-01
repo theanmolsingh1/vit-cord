@@ -226,7 +226,7 @@ maximizeRemoteBtn.addEventListener('click', () => {
 socket.on('randomWaiting', () => {
     if (!started) return;
     setRandomChatAvailability(false);
-    setStatus('Waiting for a stranger...');
+    setStatus('Waiting for a Connection...');
 });
 
 socket.on('randomMatched', async (data) => {
@@ -234,7 +234,7 @@ socket.on('randomMatched', async (data) => {
 
     partnerSocketId = data.partnerSocketId;
     randomPartnerLabel.textContent = data.partnerName || 'Stranger';
-    setStatus(`Connected with ${data.partnerName || 'Stranger'}`);
+    setStatus('Connection established.');
     setRandomChatAvailability(true);
     randomChatInput.focus();
 
