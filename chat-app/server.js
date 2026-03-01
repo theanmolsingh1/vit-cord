@@ -554,6 +554,37 @@ io.on('connection', (socket) => {
   });
 
   /**
+   * Random text chat message between active pair
+   */
+  socket.on('randomSendMessage', (data, callback = () => {}) => {
+    const { message } = data || {};
+    const partnerSocketId = getRandomPartner(socket.id);
+
+    if (!partnerSocketId) {
+      return callback({ success: false, message: 'No active random partner' });
+    }
+
+    const text = typeof message === 'string' ? message.trim() : '';
+    if (!text) {
+      return callback({ success: false, message: 'Message cannot be empty' });
+    }
+    if (text.length > 500) {
+      return callback({ success: false, message: 'Message too long (max 500 characters)' });
+    }
+
+    const payload = {
+      fromSocketId: socket.id,
+      fromUsername: socket.data.randomName || 'Stranger',
+      message: text,
+      timestamp: new Date()
+    };
+
+    socket.emit('randomNewMessage', payload);
+    io.to(partnerSocketId).emit('randomNewMessage', payload);
+    callback({ success: true });
+  });
+
+  /**
    * Event: Disconnect
    * Handles unexpected disconnects
    */

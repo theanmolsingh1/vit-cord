@@ -19,27 +19,45 @@
         </div>
 
         <div class="random-main">
-            <div class="random-videos">
-                <div class="random-video-card">
-                    <p class="video-label">You</p>
-                    <video id="randomLocalVideo" autoplay playsinline muted></video>
+            <div class="random-left">
+                <div class="random-videos">
+                    <div class="random-video-card">
+                        <div class="random-video-head">
+                            <p class="video-label">You</p>
+                        </div>
+                        <video id="randomLocalVideo" autoplay playsinline muted></video>
+                    </div>
+                    <div class="random-video-card">
+                        <div class="random-video-head">
+                            <p id="randomPartnerLabel" class="video-label">Stranger</p>
+                            <button id="maximizeRemoteBtn" type="button" class="btn-video-size">Maximize</button>
+                        </div>
+                        <video id="randomRemoteVideo" autoplay playsinline></video>
+                    </div>
                 </div>
-                <div class="random-video-card">
-                    <p id="randomPartnerLabel" class="video-label">Stranger</p>
-                    <video id="randomRemoteVideo" autoplay playsinline></video>
+
+                <div class="random-bottom">
+                    <div id="randomStatus" class="status-message">Matching starts automatically...</div>
+
+                    <div class="random-controls">
+                        <button id="randomNextBtn" class="btn btn-send" type="button" disabled>Next Stranger</button>
+                        <button id="randomMuteBtn" class="btn btn-send" type="button" disabled>Mute Mic</button>
+                        <button id="randomCameraBtn" class="btn btn-send" type="button" disabled>Turn Camera Off</button>
+                    </div>
+                    <div class="random-controls random-controls-bottom">
+                        <button id="randomStartBtn" class="btn btn-primary" type="button">Start</button>
+                        <button id="randomStopBtn" class="btn btn-danger" type="button" disabled>Stop</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="random-panel">
-                <div id="randomStatus" class="status-message">Click Start to begin random matching.</div>
-
-                <div class="random-controls">
-                    <button id="randomStartBtn" class="btn btn-primary" type="button">Start</button>
-                    <button id="randomNextBtn" class="btn btn-send" type="button" disabled>Next Stranger</button>
-                    <button id="randomMuteBtn" class="btn btn-send" type="button" disabled>Mute Mic</button>
-                    <button id="randomCameraBtn" class="btn btn-send" type="button" disabled>Turn Camera Off</button>
-                    <button id="randomStopBtn" class="btn btn-danger" type="button" disabled>Stop</button>
-                </div>
+            <div class="random-chat-panel">
+                <h3>Chat</h3>
+                <div id="randomChatList" class="random-chat-list"></div>
+                <form id="randomChatForm" class="random-chat-form">
+                    <input id="randomChatInput" type="text" maxlength="500" placeholder="Type a message to stranger..." autocomplete="off" disabled>
+                    <button id="randomChatSendBtn" class="btn btn-send" type="submit" disabled>Send</button>
+                </form>
             </div>
         </div>
     </div>

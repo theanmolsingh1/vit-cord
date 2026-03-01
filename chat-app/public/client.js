@@ -320,22 +320,24 @@ backToChoicesBtn.addEventListener('click', () => {
     showLandingChoices();
 });
 
-openRandomChatBtn.addEventListener('click', (e) => {
+openRandomChatBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    const enteredName = window.prompt('Name to be shown:', '');
-    if (enteredName === null) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showError('Camera/Microphone is not supported in this browser.');
         return;
     }
 
-    const username = enteredName.trim();
-    const usernameValidation = validateUsername(username);
-    if (!usernameValidation.valid) {
-        showError(usernameValidation.message);
+    try {
+        // Ask camera and microphone permission together.
+        const preflightStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        preflightStream.getTracks().forEach((track) => track.stop());
+    } catch (error) {
+        showError('Camera and microphone permission is required for Video Chat.');
         return;
     }
 
-    sessionStorage.setItem('randomDisplayName', username);
+    sessionStorage.removeItem('randomDisplayName');
     window.location.href = 'random.html';
 });
 
