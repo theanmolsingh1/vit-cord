@@ -134,10 +134,6 @@ NODE_ENV=production
 PORT=3000
 ```
 
-## Resume Summary Snippet
-
-Built **VibelyVerse**, a full-stack real-time communication platform using **Node.js, Express, Socket.IO, WebRTC, and PostgreSQL (Render)** with public/private room chat, random 1:1 video chat, and a college-based weekly social feed (Ranters), including production deployment and persistent data architecture.
-
 
 <!-- 
 cd "c:\Users\LENOVO\Desktop\vit_cord"
